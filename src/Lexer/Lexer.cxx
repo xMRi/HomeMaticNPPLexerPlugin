@@ -110,6 +110,8 @@ private:
 			 wlConstants,
 			 wlConstantsOther;
 
+	ULONGLONG lastUpdate = ::GetTickCount64();
+	const unsigned int refreshTime = 30000; // lex all after 60 secs, to clear the variable buffer
 	std::set<std::string> setVariables;
 };
 
@@ -215,8 +217,10 @@ inline void SCI_METHOD LexerHomematic::Fold([[maybe_unused]] Sci_PositionU start
 
 Sci_Position SCI_METHOD LexerHomematic::WordListSet(int n, const char* wl) 
 {
-	// Try and load
+	// Modification -1 indicates no change, otherwise we have the rescan position (0 normally)
 	Sci_Position firstModification = -1;
+
+	// Try and load, 
 	struct {
 		const int id;
 		WordList* wl;
@@ -232,7 +236,7 @@ Sci_Position SCI_METHOD LexerHomematic::WordListSet(int n, const char* wl)
 	};
 	auto it = std::find_if(std::begin(ar), std::end(ar), [n](const auto& item) { return item.id==n; });
 	if (it==std::end(ar)) 
-		// not found it! 
+		// not found! 
 		return firstModification;
 
 	WordList* wordListN = it->wl;
@@ -245,6 +249,7 @@ Sci_Position SCI_METHOD LexerHomematic::WordListSet(int n, const char* wl)
 		wordListN->Set(wl);
 		firstModification = 0;
 	}
+
 	return firstModification;
 }
 
@@ -253,10 +258,22 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 	try 
 	{
 		LexAccessor styler(pAccess);
-		StyleContext sc(startPos, length, LXX_DEFAULT, styler);
 
+		// Che3ck if we do a full reparse after some time to clear the variables set. So we get rid of deleted 
+		// variables here. The reparse starts at position 0 for the length of the doc.
+		auto now = ::GetTickCount64();
+		if (lastUpdate+refreshTime<=now)
+		{
+			// Clear cache and force a a complete lex
+			lastUpdate = now;
+			setVariables.clear();
+			startPos = 0;
+			length = styler.Length();
+		}
+
+		StyleContext sc(startPos, length, LXX_DEFAULT, styler);
 		std::string word;
-		bool commenAllowed = true;	
+		bool commentAllowed = true;	
 
 		// sc.More() checked at loop bottom
 		while(sc.More())
@@ -290,7 +307,7 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 			if (sc.atLineStart)
 			{
 				// On a line end, we stop with comments
-				commenAllowed = true;
+				commentAllowed = true;
 				sc.SetState(LXX_DEFAULT);
 			}
 
@@ -302,70 +319,69 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 				}
 				else
 				{
-					// Check all word lists
-					struct {
-						const int id;
-						WordList* wl;
-					} const ar[] = {
-						LXX_METHODS,		 &wlMethods, 
-						LXX_STATEMENTS,		 &wlStatements,
-						LXX_DECLARATION,	 &wlDeclaration, 
-						LXX_NAMESPACE,	 	 &wlNamespace,
-						LXX_REGAOBJ,	 	 &wlRegaObj,
-						LXX_REGAMETHODS,	 &wlRegaMethods,
-						LXX_CONSTANTS,		 &wlConstants,
-						LXX_CONSTANTS_OTHER, &wlConstantsOther,
-					};
-					bool parseForVariable=false;
-					bool found = false;
-					for (auto& e : ar)
+					// But if we detected a variable with same name, we use the variable instead 
+					// of the reserved name. 
+					if (setVariables.find(word)!=setVariables.end())
 					{
-						if (e.wl->InList(word.c_str()))
-						{
-							// Set previous section to the state we found
-							sc.ChangeState(e.id);
-							found = true;
-							parseForVariable = e.id==LXX_DECLARATION;
-							break;
-						}
+						sc.ChangeState(LXX_VARIABLES);
 					}
-
-					// It might be a variable
-					if (parseForVariable)
+					else
 					{
-						auto curpos = sc.currentPos;
-
-						// Skip whitespace
-						while (sc.More() &&  isspace(sc.ch))
-							sc.Forward();
-						if (sc.More() && (isalpha(sc.ch) || sc.ch=='_'))
+						// Check all word lists for language defined words
+						struct {
+							const int id;
+							WordList* wl;
+						} const ar[] = {
+							LXX_METHODS,		 &wlMethods,
+							LXX_STATEMENTS,		 &wlStatements,
+							LXX_DECLARATION,	 &wlDeclaration,
+							LXX_NAMESPACE,	 	 &wlNamespace,
+							LXX_REGAOBJ,	 	 &wlRegaObj,
+							LXX_REGAMETHODS,	 &wlRegaMethods,
+							LXX_CONSTANTS,		 &wlConstants,
+							LXX_CONSTANTS_OTHER, &wlConstantsOther,
+						};
+						bool parseForVariable = false;
+						for (auto& e : ar)
 						{
-							word.clear();
-							do
+							if (e.wl->InList(word.c_str()))
 							{
-								word += sc.ch;
-								sc.Forward();
-							} while (sc.More() && (iswalnum(sc.ch) || sc.ch=='_'));
-
-							// If we have a word, we set it into the list
-							if (word.length()>0)
-								setVariables.emplace(word);
+								// Set previous section to the state we found
+								sc.ChangeState(e.id);
+								parseForVariable = e.id==LXX_DECLARATION;
+								break;
+							}
 						}
 
-						// Get back to previous position:
-						sc.currentPos = curpos;
-						sc.chPrev = sc.GetRelativeCharacter(-1);
-						sc.ch = sc.GetRelativeCharacter(0);
-						sc.chNext = sc.GetRelativeCharacter(1);
+						// It might be a variable
+						if (parseForVariable)
+						{
+							auto curpos = sc.currentPos;
+
+							// Skip whitespace
+							while (sc.More() &&  isspace(sc.ch))
+								sc.Forward();
+							if (sc.More() && (isalpha(sc.ch) || sc.ch=='_'))
+							{
+								word.clear();
+								do
+								{
+									word += sc.ch;
+									sc.Forward();
+								} while (sc.More() && (iswalnum(sc.ch) || sc.ch=='_'));
+
+								// If we have a word, we set it into the list
+								if (word.length()>0)
+									setVariables.emplace(word);
+							}
+
+							// Get back to previous and parse from the start word position:
+							sc.currentPos = curpos;
+							sc.chPrev = sc.GetRelativeCharacter(-1);
+							sc.ch = sc.GetRelativeCharacter(0);
+							sc.chNext = sc.GetRelativeCharacter(1);
+						}
 					}
-					else if (!found)
-					{
-						// Check if we know this variable name
-						if (setVariables.find(word)!=setVariables.end())
-							// We found the variable, so we can color it.
-							sc.ChangeState(LXX_VARIABLES);
-					}
-					
 					// Continue normal.
 					sc.SetState(LXX_DEFAULT);
 					continue;
@@ -382,7 +398,7 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 				{
 					sc.SetState(LXX_STRINGCONSTANT);
 				}
-				else if (commenAllowed && sc.Match('!'))
+				else if (commentAllowed && sc.Match('!'))
 				{
 					sc.SetState(LXX_COMMENT);
 				}
@@ -424,12 +440,12 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 				{
 					// Start collecting the next word.
 					sc.SetState(LXX_WORD);
-					commenAllowed = false;
+					commentAllowed = false;
 					word = sc.ch;				
 				}
 				else if (sc.Match(';'))
 				{
-					commenAllowed = true;
+					commentAllowed = true;
 				}
 				else
 				{
@@ -460,7 +476,7 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 						if (it!=std::end(ops2))
 						{
 							if (**it=='{' || **it=='}')
-								commenAllowed = true;
+								commentAllowed = true;
 							sc.SetState(LXX_OPERATOR2);
 							sc.ForwardBytes(strlen(*it)-1);
 							sc.ForwardSetState(LXX_DEFAULT);

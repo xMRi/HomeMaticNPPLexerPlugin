@@ -144,6 +144,7 @@
     <ClInclude Include="..\src\scintilla\Scintilla.h">
       <Filter>Scintilla</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\HomeMaticNPPLexerPlugin.rc">
