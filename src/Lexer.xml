@@ -2,7 +2,7 @@
   <Languages>
     <Language name="Homematic" ext="hsc" commentLine="!" tabSettings="130" backspaceUnindent="yes">
       <Keywords name="instre1">Abs Acos Acosh Add Address Asin Asinh Atan Atanh Cbrt Ceil Channel Channels ChnAESActive ChnArchive ChnDirection ChnFunction ChnGroupPartnerId ChnRoom Contains Cos Cosh Count CreateObject DPArchive DPByHssDP DPInfo DPs Date Day Device EndsWith EnumUsedIDs EnumUsedNames Exec Exp Exp10 Exp2 Expm1 Find Find Floor Format Format Get GetAt GetObject GetVar Hour HssType ID Interface Internal IsDST IsLocalTime IsTypeOf IsVar LTrim LastValue Length Log Log10 Log1p Log2 Max Min Minute Mod Month Name Operations Pow ProgramExecute RTUpdate RTrim Random Replace Round Second Sin Sinh Split Sqrt Srandom StartsWith State StrValueByIndex Substr Tan Tanh Timestamp ToFloat ToInteger ToLatin ToLower ToString ToTime ToUTF8 ToUpper Trim Trunc Type TypeName UriDecode UriEncode Value ValueMax ValueMin ValueSubType ValueType ValueUnit VarType Variable Visible Week Year Yearday </Keywords> <!-- METHODS -->
-      <Keywords name="instre2">if else elseif while foreach quit</Keywords>          <!-- STATEMENTS -->
+      <Keywords name="instre2">if else elseif while foreach quit break continue</Keywords>          <!-- STATEMENTS -->
       <Keywords name="type1">system xmlrpc web tcap</Keywords> <!-- NAMESPACE -->
       <Keywords name="type2">dom root channels devices interfaces</Keywords> <!-- REGAOBJ -->
       <Keywords name="type3">string integer real boolean time object var xml idarray</Keywords>  <!-- DECLARATION -->
