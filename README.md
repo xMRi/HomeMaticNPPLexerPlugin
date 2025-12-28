@@ -94,7 +94,3 @@ After installation, **HomematicNPPLexerPlugin** should appear:
 
 * In the *Language* menu
 * At the bottom of *Settings → Style Configuration*
-
-## Known Limitations
-
-The `ARM64` branch isn't build and defined up to now.
