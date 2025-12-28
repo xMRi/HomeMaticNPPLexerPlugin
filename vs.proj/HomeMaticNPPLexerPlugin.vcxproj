@@ -204,8 +204,7 @@
       <AdditionalDependencies>shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml
-</Command>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
       <Message>Copy Lexer XML</Message>
       <Outputs>$(OutputPath)\$(TargetName).xml</Outputs>
       <Inputs>..\src\Lexer.xml</Inputs>
@@ -239,8 +238,7 @@ REPLACE "$(TargetDir)$(TargetName).xml" "$(ProgramFiles)\NotePad++\plugins\Confi
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml
-</Command>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Copy Lexer XML</Message>
@@ -269,6 +267,15 @@ REPLACE "$(TargetDir)$(TargetName).xml" "$(ProgramFiles)\NotePad++\plugins\Confi
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CustomBuildStep>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
+      <Message>Copy Lexer XML</Message>
+      <Outputs>$(OutputPath)\$(TargetName).xml</Outputs>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
+      <Inputs>..\src\Lexer.xml</Inputs>
+      <RootFolder>..\src\</RootFolder>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -295,8 +302,7 @@ REPLACE "$(TargetDir)$(TargetName).xml" "$(ProgramFiles)\NotePad++\plugins\Confi
       </Command>
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml
-</Command>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
       <Message>Copy Lexer XML</Message>
       <Outputs>$(OutputPath)\$(TargetName).xml</Outputs>
       <Inputs>..\src\Lexer.xml</Inputs>
@@ -334,8 +340,7 @@ REPLACE "$(TargetDir)$(TargetName).xml" "$(ProgramFiles)\NotePad++\plugins\Confi
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml
-</Command>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Copy Lexer XML</Message>
@@ -372,6 +377,15 @@ REPLACE "$(TargetDir)$(TargetName).xml" "$(ProgramFiles)\NotePad++\plugins\Confi
       <Command>
       </Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>COPY "..\src\Lexer.xml" "$(TargetDir)\$(TargetName)".xml</Command>
+      <Message>Copy Lexer XML</Message>
+      <Outputs>$(OutputPath)\$(TargetName).xml</Outputs>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
+      <Inputs>..\src\Lexer.xml</Inputs>
+      <RootFolder>..\src\</RootFolder>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
