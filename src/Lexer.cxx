@@ -258,10 +258,10 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 {
 	try 
 	{
-		TRACE("startPos=" << startPos << " length=" << length << " sumn=" << (startPos+length) << "\n");
+//		TRACE("startPos=" << startPos << " length=" << length << " sumn=" << (startPos+length) << "\n");
 		LexAccessor styler(pAccess);
 
-		// Clear list on a full scan
+		// Clear list on a full scan, faster than the loop over all variables, but some effect.
 		if (startPos==0)
 		{
 			mapVariables.clear();
@@ -280,23 +280,25 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 			}
 		}
 
-		// 
+		// Start with defualt
 		StyleContext sc(startPos, length, LXX_DEFAULT, styler);
 
 		// Start states
 		std::string word;
 		bool commentAllowed = true;	
+		int commentChar = 0;
 
 		// sc.More() checked at loop bottom
-		while(sc.More())
+		while (sc.More())
 		{
 			if (sc.state==LXX_STRINGCONSTANT)
 			{
-				if (sc.Match("\\\""))
-					// Skip backslash and the next \"
+				// Inside string constant, check for escapes.
+				if (sc.Match("\\\"") || sc.Match("\\\'"))
+					// Skip backslash and the next \" or \'
 					sc.ForwardBytes(2);
-				else if (sc.Match('\"'))
-					// Found the end.
+				else if (sc.Match(commentChar))
+					// Found the end. Must be the same char as the string starts.
 					sc.ForwardSetState(LXX_DEFAULT);
 				else
 					// Skip character
@@ -425,8 +427,9 @@ inline void SCI_METHOD LexerHomematic::Lex(Sci_PositionU startPos, Sci_Position 
 					// Skip blanks fast
 					;
 				}
-				else if (sc.Match('\"'))
+				else if (sc.Match('\"') || sc.Match('\''))
 				{
+					commentChar = sc.ch;
 					sc.SetState(LXX_STRINGCONSTANT);
 				}
 				else if (commentAllowed && sc.Match('!'))
